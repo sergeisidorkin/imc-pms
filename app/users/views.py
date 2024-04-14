@@ -7,6 +7,7 @@ from typing import List, Any, Dict
 
 
 from users.forms import UserLoginForm
+from users.forms import UserRegistrationForm
 
 
 def login(request) -> HttpResponseRedirect:
@@ -30,8 +31,19 @@ def login(request) -> HttpResponseRedirect:
 
 
 def registration(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            user = form.instance
+            auth.login(request, user)
+            return HttpResponseRedirect(reverse('main:index'))
+    else:
+        form = UserRegistrationForm()
+
     context = {
         'title': 'Home - Регистрация',
+        'form': form
     }
     return render(request, 'users/registration.html', context)
 
@@ -44,7 +56,5 @@ def profile(request):
 
 
 def logout(request):
-    context = {
-        'title': 'Home - Выход',
-    }
-    return render(request, 'users/logout.html', context)
+    auth.logout(request)
+    return redirect(reverse('main:index'))
